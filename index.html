@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+* { box-sizing: border-box; }
+
+.highlight {
+ position: absolute;
+ top: 50%;
+ left: 50%;
+ transform: translate(-50%, -50%);
+ text-align: left;
+ width: 80%;
+ z-index: 10;
+ white-space: pre-line;
+ font-size: clamp(22pt, 5vw, 50pt);
+ line-height: 1.15;
+ opacity: 0;
+ animation: highlightFade 5s ease forwards;
+}
+
+@keyframes highlightFade {
+ 0%   { opacity: 0; }
+ 15%  { opacity: 1; }
+ 75%  { opacity: 1; }
+ 100% { opacity: 0; }
+}
+
+body {
+ background: #570301;
+ color: #F7E594;
+ margin: 0;
+ font-family: Helvetica Neue, sans-serif;
+ font-size: 10pt;
+ line-height: 1.5;
+ display: flex;
+ min-height: 100vh;
+}
+
+#main {
+ width: 70%;
+ padding: 40px 40px 80px 40px;
+ position: relative;
+ overflow: hidden;
+ min-height: 100vh;
+}
+
+div {
+ margin-bottom: 10px;
+ text-align: left;
+}
+
+.name     { margin-left: 0px;   font-weight: 100; }
+.place    { margin-left: 20px;  font-weight: 200; }
+.before   { margin-left: 60px;  font-weight: 300; }
+.violence { margin-left: 100px; font-weight: 400; }
+
+.system {
+ margin-left: 140px;
+ font-weight: 500;
+ opacity: 1;
+}
+
+@keyframes systemFadeOut {
+ 0%   { opacity: 1; }
+ 100% { opacity: 0; }
+}
+
+.news { margin-left: 180px; font-weight: 600; }
+
+#intro {
+ position: fixed;
+ inset: 0;
+ background: #570301;
+ z-index: 100;
+ display: flex;
+ align-items: center;
+ justify-content: flex-start;
+ padding: 40px;
+ cursor: pointer;
+ user-select: none;
+ -webkit-user-select: none;
+}
+
+#intro-lines {
+ display: flex;
+ flex-direction: column;
+ gap: 16px;
+ width: 80%;
+}
+
+.intro-line {
+ opacity: 0;
+ transition: opacity 0.5s ease;
+ font-size: clamp(22pt, 5vw, 50pt);
+ font-weight: 100;
+ line-height: 1.15;
+}
+
+.intro-line.visible {
+ opacity: 1;
+}
+
+#intro-hint {
+ position: fixed;
+ bottom: 40px;
+ left: 40px;
+ opacity: 0;
+ font-size: 8pt;
+ letter-spacing: 1px;
+ color: rgba(247,229,148,0.4);
+ transition: opacity 1s ease;
+ pointer-events: none;
+}
+
+#side {
+ width: 30%;
+ padding: 40px;
+ min-height: 100vh;
+ overflow-y: auto;
+ border-left: 1px solid rgba(249,246,239,0.2);
+ flex-shrink: 0;
+}
+
+.section { margin-bottom: 40px; }
+
+h3 {
+ font-size: 10pt;
+ letter-spacing: 1px;
+ opacity: 0.5;
+ margin-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+ body {
+  flex-direction: column;
+  overflow-y: auto;
+  height: auto;
+  min-height: 100vh;
+ }
+ #main {
+  width: 100%;
+  padding: 20px 20px 40px 20px;
+  min-height: 60vh;
+  overflow: visible;
+ }
+ #side {
+  width: 100%;
+  min-height: auto;
+  border-left: none;
+  border-top: 1px solid rgba(249,246,239,0.2);
+  padding: 20px;
+  display: none;
+ }
+ #side.visible {
+  display: block;
+ }
+ .highlight { width: 90%; }
+ #intro { padding: 20px; }
+ #intro-hint { left: 20px; bottom: 20px; }
+ #intro-lines { width: 95%; }
+}
+</style>
+
+<script>
+var introLines = [
+ "based on real cases",
+ "these names are real",
+ "violence appears",
+ "disappears",
+ "returns",
+ "on repetition",
+ "on normalization",
+ "on erasure",
+];
+
+var cases = [
+ {
+  name: "Münevver, 17",
+  place: "Istanbul, at home",
+  before: ["she said she would meet him"],
+  violence: ["stabbed 29 times","13 cuts on the head","dismembered","hidden in a trash container"],
+  system: ["the murderer fled and was later arrested","the murderer was hidden for 197 days with help from his family","wealth influenced the legal process"],
+  news: ["she told her friends she would change her skirt into pants before meeting him","the murderer committed suicide after 3 years in prison","the lawyer stated: 'if a mentally unstable person can kill, they may also harm themselves'"]
+ },
+ {
+  name: "Özgecan, 19",
+  place: "Mersin, on a bus",
+  before: ["she resisted an attempted assault by the driver and two other passengers"],
+  violence: ["stabbed during struggle against rape","beaten to death with an iron rod","burned"],
+  system: ["defense attempted to deny sexual assault","attorney concluded there was no rape took place even though Özgecan's genital area was burned to prevent the detection of rape","legal discourse shifted blame toward the victim"],
+  news: ["a young girl could not identify the body of her friend and fainted upon seeing the clothes","women across cities described experiences of harassment and violence during protests"]
+ },
+ {
+  name: "Pınar, 26",
+  place: "Muğla, at office",
+  before: ["she was stalked","she blocked him","she refused contact"],
+  violence: ["beaten unconscious","strangled","cut to pieces","burned","poured concrete over in a barrel"],
+  system: ["sentence reduced under legal mitigation","the murderer claimed Pınar was guilty of seduction and provocation","provocation argument accepted in court reasoning"],
+  news: ["Pınar's previous posts on social media said: 'Özgecan's murder feels like my sister was killed; the pain does not pass'","police intervened and detained at least 15 women during protests in İzmir after Pınar's murder"]
+ },
+ {
+  name: "Emine, 38",
+  place: "Kırıkkale, a café",
+  before: ["she was with her daughter","custody conflict ongoing with ex-husband"],
+  violence: ["stabbed in neck"],
+  system: ["the person who recorded the incident on video got sentenced","prior threats had been documented","the murderer posted the crime on social media and threatened others"],
+  news: ["her last words were: 'I don't want to die'","her daughter cried: 'mom, please don't die'"]
+ },
+ {
+  name: "Ayşenur, 19",
+  place: "Istanbul, at home",
+  before: ["she was invited to the murderer's home","he had a history of mental health treatment and missing reports"],
+  violence: ["tongue cut","dismembered"],
+  system: ["suspect had prior psychiatric reports","authorities had previous alerts","the murderer reported the murder to the police"],
+  news: ["the murderer called Ayşenur's family to say she is safe with him"]
+ },
+ {
+  name: "İkbal, 19",
+  place: "Istanbul, historical landmark",
+  before: ["she met the murderer after prior contact regarding committing suicide together"],
+  violence: ["dismembered","head thrown off the historical landmark"],
+  system: ["behavioral warnings existed prior to the incident"],
+  news: ["search continued during confusion","family described delayed information flow","during the investigations, a charcoal drawing resembling victim's body was reportedly found","the murderer had previously stabbed himself in the heart and was hospitalized for treatment"]
+ }
+];
+
+var highlights = [
+ "she told her friends\nshe would change\nher skirt into pants\nbefore meeting him",
+ "the murderer\ncommitted suicide\nafter 3 years\nin prison",
+ "the lawyer stated:\n'if a mentally\nunstable person\ncan kill, they may\nalso harm themselves'",
+ "a young girl\ncould not identify\nthe body of her friend\nand fainted upon\nseeing the clothes",
+ "women across cities\ndescribed experiences\nof harassment\nand violence\nduring protests",
+ "Pınar's previous posts\non social media said:\n'Özgecan's murder\nfeels like my sister\nwas killed;\nthe pain does not pass'",
+ "police intervened\nand detained\nat least 15 women\nduring protests\nin İzmir\nafter Pınar's murder",
+ "her last words were:\n'I don't want to die'",
+ "her daughter cried:\n'mom, please\ndon't\ndie'",
+ "the murderer called\nAyşenur's family to say\nshe is safe with him",
+ "search continued\nduring confusion",
+ "family described\ndelayed information flow",
+ "during the investigations\na charcoal drawing\nresembling the victim's body\nwas reportedly found",
+ "the murderer had\npreviously stabbed himself\nin the heart and was\nhospitalized for treatment",
+];
+
+let caseIndex = 0;
+let highlightIndex = 0;
+let mode = "cases";
+let introStep = 0;
+let introReady = false;
+let currentIntroEl = null;
+
+function showNextIntroLine() {
+ let container = document.getElementById("intro-lines");
+ if (!currentIntroEl) {
+  currentIntroEl = document.createElement("div");
+  currentIntroEl.className = "intro-line";
+  container.appendChild(currentIntroEl);
+  currentIntroEl.textContent = introLines[introStep];
+  requestAnimationFrame(() => requestAnimationFrame(() => currentIntroEl.classList.add("visible")));
+  introStep++;
+  setTimeout(() => { document.getElementById("intro-hint").style.opacity = "1"; }, 800);
+  return;
+ }
+ currentIntroEl.classList.remove("visible");
+ if (introStep >= introLines.length) {
+  setTimeout(() => {
+   let hint = document.getElementById("intro-hint");
+   hint.textContent = "tap to begin";
+   introReady = true;
+  }, 500);
+  return;
+ }
+ setTimeout(() => {
+  currentIntroEl.textContent = introLines[introStep];
+  requestAnimationFrame(() => requestAnimationFrame(() => currentIntroEl.classList.add("visible")));
+  introStep++;
+ }, 500);
+}
+
+function handleTap() {
+ if (introReady) {
+  let intro = document.getElementById("intro");
+  intro.style.transition = "opacity 0.8s ease";
+  intro.style.opacity = "0";
+  setTimeout(() => {
+   intro.remove();
+   document.getElementById("side").classList.add("visible");
+  }, 800);
+  setTimeout(() => runCase(), 800);
+  return;
+ }
+ showNextIntroLine();
+}
+
+function clearMain() { document.getElementById("main").innerHTML = ""; }
+
+function addLine(text, className) {
+ let line = document.createElement("div");
+ line.textContent = text;
+ if (className) line.className = className;
+ document.getElementById("main").appendChild(line);
+ return line;
+}
+
+function typeWriter(text, className, speed = 35) {
+ return new Promise(resolve => {
+  let line = document.createElement("div");
+  if (className) line.className = className;
+  document.getElementById("main").appendChild(line);
+  let i = 0;
+  function typing() {
+   if (i < text.length) { line.textContent += text.charAt(i); i++; setTimeout(typing, speed); }
+   else { resolve(); }
+  }
+  typing();
+ });
+}
+
+function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+async function runCase() {
+ clearMain();
+ if (mode === "cases") {
+  let c = cases[caseIndex];
+  addLine(c.name, "name");
+  await delay(1800);
+  addLine(c.place, "place");
+  await delay(1800);
+  for (let b of c.before) { addLine(b, "before"); await delay(600); }
+  await delay(1200);
+  for (let v of c.violence) { addLine(v, "violence"); await delay(600); }
+  await delay(1200);
+  let systemEls = [];
+  for (let s of c.system) { let el = addLine(s, "system"); systemEls.push(el); await delay(400); }
+  await delay(600);
+  const triggerFade = () => {
+   systemEls.forEach(el => { el.style.animation = "systemFadeOut 1800ms ease forwards"; });
+  };
+  for (let i = 0; i < c.news.length; i++) {
+   await typeWriter(c.news[i], "news", 35);
+   await delay(400);
+   if (i === 0) { triggerFade(); }
+  }
+  await delay(600);
+  caseIndex++;
+  if (caseIndex >= cases.length) { caseIndex = 0; mode = "highlights"; }
+  runCase();
+ } else if (mode === "highlights") {
+  let main = document.getElementById("main");
+  let el = document.createElement("div");
+  el.className = "highlight";
+  el.textContent = highlights[highlightIndex];
+  main.appendChild(el);
+  highlightIndex++;
+  if (highlightIndex >= highlights.length) { highlightIndex = 0; mode = "cases"; }
+  await delay(5000);
+  runCase();
+ }
+}
+
+window.onload = () => {
+ setTimeout(() => { document.getElementById("intro-hint").style.opacity = "1"; }, 600);
+ let intro = document.getElementById("intro");
+ intro.addEventListener("click", handleTap);
+ intro.addEventListener("touchend", e => { e.preventDefault(); handleTap(); });
+};
+</script>
+
+<title>still here: a system of repetition, erasure and remains</title>
+</head>
+<body>
+<div id="intro">
+ <div id="intro-lines"></div>
+ <div id="intro-hint">tap to continue</div>
+</div>
+<div id="main"></div>
+<div id="side">
+<div class="section">
+<h3>PERSONAL NOTE</h3>
+this work does not aim to exploit or aestheticize violence<br><br>
+this is not mourning<br>
+this is documentation<br>
+this is evidence<br>
+this is an accusation<br><br>
+of systemic injustice<br>
+of ongoing erasure<br><br>
+an invitation to act:<br>
+learn<br>
+share<br>
+support<br>
+open your eyes<br><br>
+attention is a form of responsibility
+</div>
+</div>
+</body>
+</html>
